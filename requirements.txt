@@ -1,0 +1,8 @@
+# Python 3.7 ONLY. pyparrot and this zeroconf pin do not work on newer Python.
+# See README.md for the full setup (system packages + pyparrot Bebop-1 patch).
+
+pyparrot==1.5.20
+zeroconf==0.20.0
+opencv-python
+numpy<2
+pygame

@@ -1,0 +1,14 @@
+# Python virtual environments
+.venv37/
+.venv/
+env/
+
+Bebop_Old/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Decoded frames / stream files that may get written while running
+*.png
+*.sdp
