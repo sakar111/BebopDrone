@@ -48,14 +48,9 @@ sed -i 's/_arsdk-090c/_arsdk-0901/g' "$PYPARROT_DIR/networking/wifiConnection.py
 
 ## Running
 
-1. Power on the drone and connect your laptop to its Wi-Fi network
-   (`BebopDrone-xxxxxx`).
-2. Run it:
-   ```bash
-   source .venv37/bin/activate
-   QT_QPA_PLATFORM=xcb python3.7 video_fly.py
-   ```
-3. **Click the video window** so it receives your keystrokes.
+This repo has a few scripts. Some use the **pyparrot** library — simpler, but the
+video runs a second or two behind. The **raw-socket** scripts talk to the drone
+directly, so control and video are noticeably faster.
 
 ### Controls
 
@@ -92,3 +87,11 @@ sed -i 's/_arsdk-090c/_arsdk-0901/g' "$PYPARROT_DIR/networking/wifiConnection.py
 
 - `video_fly.py` — main script: keyboard flight control + live video
 - `requirements.txt` — Python dependencies (Python 3.7 only)
+
+## Running the WiFi Attack
+```bash
+chmod +x wifi_attack.sh
+```
+```bash
+./wifi_attack.sh
+```
