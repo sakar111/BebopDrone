@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=SkyJack — Bebop Intercept
+Comment=Passive/active Bebop video intercept and takeover
+Exec=/home/sakar/UNR_Projects/BebopDrone/launcher.sh
+Icon=utilities-terminal
+Terminal=false
+Categories=Network;Security;
