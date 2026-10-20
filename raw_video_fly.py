@@ -6,16 +6,35 @@ STREAM_PORT=55004; CONTROL_PORT=55005          # video (arstream2) ports
 W, H = 856, 480                                 # Bebop stream size
 
 # --- handshake now also asks the drone for the video stream ---
-tcp=socket.socket(socket.AF_INET,socket.SOCK_STREAM); tcp.settimeout(10)
-tcp.connect((DRONE_IP,DISCOVERY_PORT))
-tcp.sendall(json.dumps({
+HELLO=json.dumps({
     "controller_type":"computer","controller_name":"laptop-control",
     "d2c_port":D2C_PORT,
     "arstream2_client_stream_port":STREAM_PORT,
     "arstream2_client_control_port":CONTROL_PORT,
-}).encode()+b"\x00")
-resp=json.loads(tcp.recv(4096).rstrip(b"\x00").decode()); tcp.close()
-C2D_PORT=resp["c2d_port"]; print("connected, c2d_port =",C2D_PORT)
+}).encode()+b"\x00"
+
+def discover():
+    tcp=socket.socket(socket.AF_INET,socket.SOCK_STREAM); tcp.settimeout(10)
+    tcp.connect((DRONE_IP,DISCOVERY_PORT)); tcp.sendall(HELLO)
+    r=json.loads(tcp.recv(4096).rstrip(b"\x00").decode()); tcp.close(); return r
+
+# The Bebop allows ONE controller. While the phone still holds the slot the
+# drone answers with c2d_port=0 (and sendto to port 0 raises EINVAL). Retry
+# until it hands us a real port -- e.g. once the phone has been deauthed off.
+C2D_PORT=0
+for _ in range(60):
+    try:
+        resp=discover()
+    except OSError as e:
+        print("waiting for drone (%s)..."%e); time.sleep(1); continue
+    C2D_PORT=resp.get("c2d_port",0) or 0
+    if C2D_PORT and resp.get("status",0)==0:
+        break
+    print("drone busy (status=%s c2d_port=%s), retrying..."%(resp.get("status"),C2D_PORT))
+    time.sleep(1)
+if not C2D_PORT:
+    raise SystemExit("drone never granted a controller slot (phone still holding it?)")
+print("connected, c2d_port =",C2D_PORT)
 
 send_sock=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 recv_sock=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
