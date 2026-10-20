@@ -4,6 +4,7 @@ IFACE="wlx00c0cabe245c"
 BSSID="A0:14:3D:A6:F1:D5"
 VENV="/home/sakar/UNR_Projects/BebopDrone/.venv37/bin/python3"
 FINDER="/home/sakar/UNR_Projects/BebopDrone/find_phone.py"
+CHANFINDER="/home/sakar/UNR_Projects/BebopDrone/find_channel.py"
 
 # Define cleanup function to kill all background processes on Ctrl+C
 cleanup() {
@@ -22,15 +23,21 @@ sudo ip link set "$IFACE" down
 sudo iw dev "$IFACE" set type monitor
 sudo ip link set "$IFACE" up
 
-# 2. Start the initial packet capture
-echo "[+] Starting initial airodump-ng scan. Press [CTRL+C] when you have found your target."
-sudo airodump-ng "$IFACE"
+# 2. Find the drone's channel automatically (channel-hop + beacon sniff).
+#    Override by exporting CHANNEL=<n>; falls back to a manual airodump scan.
+channel_num="${CHANNEL:-}"
+if [ -z "$channel_num" ]; then
+    echo "[+] Auto-detecting the drone's channel..."
+    channel_num="$(sudo "$VENV" "$CHANFINDER" "$IFACE")"
+fi
+if [ -z "$channel_num" ]; then
+    echo "[!] Auto-detect failed. Manual scan — find your target, then Ctrl-C."
+    sudo airodump-ng "$IFACE"
+    echo ""
+    read -p "Enter the target channel number: " channel_num
+fi
 
-# 3. Wait for user input to proceed and get the channel
-echo ""
-read -p "Enter the target channel number: " channel_num
-
-# 4. Lock the adapter to that channel (find_phone + deauth both need this)
+# 3. Lock the adapter to that channel (find_phone + deauth both need this)
 sudo iw dev "$IFACE" set channel "$channel_num"
 echo "[+] Locked to channel $channel_num."
 

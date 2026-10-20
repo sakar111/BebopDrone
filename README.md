@@ -140,4 +140,5 @@ periodic keyframe "kick" is a *recovery* mechanism, not a reception fix.
 - `watch_bebop.sh` — engine: scan, channel-lock, launch (env-configurable)
 - `watch_passive.sh` / `watch_active.sh` — the two modes above
 - `find_phone.py` — detect the phone's MAC for the targeted deauth
+- `find_channel.py` — detect the drone's Wi-Fi channel (channel-hop + sniff)
 - `capture_start.py` — capture a stream (re)start to grab fresh SPS/PPS

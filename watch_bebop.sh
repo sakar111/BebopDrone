@@ -7,6 +7,7 @@ IFACE="wlx00c0cabe245c"        # Alfa MT7612U — monitor only
 VENV="/home/sakar/UNR_Projects/BebopDrone/.venv37/bin/python3"
 SCRIPT="/home/sakar/UNR_Projects/BebopDrone/live_parser.py"
 FINDER="/home/sakar/UNR_Projects/BebopDrone/find_phone.py"
+CHANFINDER="/home/sakar/UNR_Projects/BebopDrone/find_channel.py"
 BSSID="A0:14:3D:A6:F1:D5"      # BebopDrone-160087 (the drone's AP)
 
 # --- Active keyframe "kick" (NOT passive -- this TRANSMITS) --------------
@@ -46,17 +47,26 @@ EOF
     echo "[+] Done — NetworkManager will never touch $IFACE again."
 fi
 
-# Scan with the Alfa (brief monitor mode just for the scan)
-echo "[+] Putting $IFACE into monitor mode for scan..."
+# Put the Alfa into monitor mode.
+echo "[+] Putting $IFACE into monitor mode..."
 sudo ip link set "$IFACE" down
 sudo iw dev "$IFACE" set type monitor
 sudo ip link set "$IFACE" up
 
-echo "[+] Scanning — find BebopDrone-160087, note its CH, then Ctrl-C..."
-sudo airodump-ng "$IFACE"
-
-echo ""
-read -p "Enter channel number: " CHANNEL
+# Find the drone's channel automatically (channel-hop + beacon sniff).
+# Override by exporting CHANNEL=<n>; falls back to a manual airodump scan.
+CHANNEL="${CHANNEL:-}"
+if [ -z "$CHANNEL" ]; then
+    echo "[+] Auto-detecting the drone's channel..."
+    CHANNEL="$(sudo "$VENV" "$CHANFINDER" "$IFACE")"
+fi
+if [ -z "$CHANNEL" ]; then
+    echo "[!] Auto-detect failed. Manual scan — find BebopDrone-160087,"
+    echo "    note its CH, then press Ctrl-C."
+    sudo airodump-ng "$IFACE"
+    echo ""
+    read -p "Enter channel number: " CHANNEL
+fi
 
 # Lock to channel
 sudo iw dev "$IFACE" set channel "$CHANNEL"
