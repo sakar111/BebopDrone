@@ -88,13 +88,29 @@ directly, so control and video are noticeably faster.
 - `video_fly.py` — main script: keyboard flight control + live video
 - `requirements.txt` — Python dependencies (Python 3.7 only)
 
-## Running the WiFi Attack
+## Control takeover (wifi_attack.sh)
+
+`wifi_attack.sh` demonstrates seizing control of **your own** Bebop from the
+laptop. The Bebop allows only one controller at a time, so the script:
+
+1. auto-detects the drone (BSSID + channel) and the phone's MAC,
+2. joins the drone's Wi-Fi on the built-in adapter (`wlp3s0` — **your internet
+   drops** while connected, and is restored on exit),
+3. fires a **targeted** deauth at the phone (never broadcast — that would drop
+   the laptop too), freeing the drone's single controller slot,
+4. launches `raw_video_fly.py`; the instant it connects (`connected, c2d_port`),
+   the deauth is **stopped** and the laptop keeps control.
+
 ```bash
 chmod +x wifi_attack.sh
+sudo ./wifi_attack.sh            # full takeover
+sudo RUN_FLY=0 ./wifi_attack.sh  # DoS only: just hold the phone off
 ```
-```bash
-./wifi_attack.sh
-```
+
+This **transmits** and hijacks control — run it only against your own drone,
+on the ground. If the phone's MAC can't be detected it aborts rather than
+broadcast-deauth. On Ctrl-C it restores the Alfa to managed mode and your
+built-in Wi-Fi's internet connection.
 
 ## Passive video intercept (eavesdropping)
 
