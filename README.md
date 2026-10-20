@@ -95,3 +95,49 @@ chmod +x wifi_attack.sh
 ```bash
 ./wifi_attack.sh
 ```
+
+## Passive video intercept (eavesdropping)
+
+The Bebop 1 streams its camera over **open, unencrypted Wi-Fi**, so a second
+adapter in monitor mode can reassemble the H.264 video without ever associating
+or transmitting. This is a defensive/educational demo — **use it only on your
+own drone.**
+
+On this firmware the video is **RTP-encapsulated H.264** (ARStream2, SSRC
+`"ARSS"`, STAP-A/FU-A) on UDP `src port 5004`, drone→phone. `live_parser.py`
+filters to the drone's 802.11 source MAC, reassembles the NAL units, and pipes
+them to `ffplay`.
+
+Two ways to run it:
+
+```bash
+# PASSIVE — never transmits; the drone operator cannot tell anyone is listening.
+# Locks on only when a keyframe naturally passes, so start it BEFORE they open
+# the video feed for the best chance of a clean picture.
+sudo ./watch_passive.sh
+
+# ACTIVE — briefly deauths the phone every 20s so it reconnects and the drone
+# resends SPS/PPS + a fresh keyframe, which resyncs the laptop feed clean.
+# This TRANSMITS: the operator sees short video drops. Drone on the ground only.
+sudo ./watch_active.sh
+```
+
+Both drive the same engine, `watch_bebop.sh`, which scans for the drone, locks
+the adapter to its channel, and launches the parser. `find_phone.py` auto-detects
+the phone's (randomized) MAC for the targeted deauth.
+
+**Why the laptop feed glitches while the phone's is clean:** the phone is the
+*associated* client — every frame is ACKed and retransmitted at the MAC layer,
+so it loses almost nothing. A passive sniffer only overhears each frame once;
+anything lost to RF noise or rate mismatch is gone, and H.264 inter-frame coding
+smears each loss across every frame that references it until the next keyframe.
+That gap is inherent to passive interception, not a bug. The active mode's
+periodic keyframe "kick" is a *recovery* mechanism, not a reception fix.
+
+### Intercept files
+
+- `live_parser.py` — offline/live H.264 reassembly (RTP `v2` and ARStream `v1`)
+- `watch_bebop.sh` — engine: scan, channel-lock, launch (env-configurable)
+- `watch_passive.sh` / `watch_active.sh` — the two modes above
+- `find_phone.py` — detect the phone's MAC for the targeted deauth
+- `capture_start.py` — capture a stream (re)start to grab fresh SPS/PPS
