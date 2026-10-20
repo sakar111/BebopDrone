@@ -5,4 +5,4 @@
 #
 # Re-kicks every 20s so the laptop feed keeps resyncing to a clean keyframe.
 HERE="$(cd "$(dirname "$0")" && pwd)"
-DO_DEAUTH=1 KICK_EVERY=20 exec "$HERE/watch_bebop.sh"
+DO_DEAUTH=1 KICK_EVERY=300 exec "$HERE/watch_bebop.sh"
