@@ -7,8 +7,9 @@ IFACE="wlx00c0cabe245c"        # Alfa MT7612U — monitor only
 VENV="/home/sakar/UNR_Projects/BebopDrone/.venv37/bin/python3"
 SCRIPT="/home/sakar/UNR_Projects/BebopDrone/live_parser.py"
 FINDER="/home/sakar/UNR_Projects/BebopDrone/find_phone.py"
-CHANFINDER="/home/sakar/UNR_Projects/BebopDrone/find_channel.py"
-BSSID="A0:14:3D:A6:F1:D5"      # BebopDrone-160087 (the drone's AP)
+DRONEFINDER="/home/sakar/UNR_Projects/BebopDrone/find_drone.py"
+SSID_PREFIX="${SSID_PREFIX:-BebopDrone}"   # how we recognise the drone's AP
+BSSID="${BSSID:-}"             # auto-detected below; or export BSSID=AA:BB:..
 
 # --- Active keyframe "kick" (NOT passive -- this TRANSMITS) --------------
 # Deauthing the phone forces FreeFlight to reconnect, which makes the drone
@@ -53,24 +54,28 @@ sudo ip link set "$IFACE" down
 sudo iw dev "$IFACE" set type monitor
 sudo ip link set "$IFACE" up
 
-# Find the drone's channel automatically (channel-hop + beacon sniff).
-# Override by exporting CHANNEL=<n>; falls back to a manual airodump scan.
+# Auto-detect the drone's BSSID + channel in one scan (channel-hop + beacon
+# sniff, matching the SSID prefix or Parrot's MAC OUI).  Override either by
+# exporting BSSID=.. / CHANNEL=..; falls back to a manual airodump scan.
 CHANNEL="${CHANNEL:-}"
-if [ -z "$CHANNEL" ]; then
-    echo "[+] Auto-detecting the drone's channel..."
-    CHANNEL="$(sudo "$VENV" "$CHANFINDER" "$IFACE")"
+if [ -z "$BSSID" ] || [ -z "$CHANNEL" ]; then
+    echo "[+] Auto-detecting the drone (SSID '$SSID_PREFIX*')..."
+    read -r DET_BSSID DET_CH < <(sudo "$VENV" "$DRONEFINDER" "$IFACE" "$SSID_PREFIX")
+    [ -z "$BSSID" ] && BSSID="$DET_BSSID"
+    [ -z "$CHANNEL" ] && CHANNEL="$DET_CH"
 fi
-if [ -z "$CHANNEL" ]; then
-    echo "[!] Auto-detect failed. Manual scan — find BebopDrone-160087,"
-    echo "    note its CH, then press Ctrl-C."
+if [ -z "$BSSID" ] || [ -z "$CHANNEL" ]; then
+    echo "[!] Auto-detect failed. Manual scan — find your drone's AP, note"
+    echo "    its BSSID and CH, then press Ctrl-C."
     sudo airodump-ng "$IFACE"
     echo ""
-    read -p "Enter channel number: " CHANNEL
+    [ -z "$BSSID" ] && read -p "Enter drone BSSID (MAC): " BSSID
+    [ -z "$CHANNEL" ] && read -p "Enter channel number: " CHANNEL
 fi
 
 # Lock to channel
 sudo iw dev "$IFACE" set channel "$CHANNEL"
-echo "[+] Locked to channel $CHANNEL."
+echo "[+] Drone $BSSID — locked to channel $CHANNEL."
 
 echo "[+] Starting live capture in 3s -> ffplay will open automatically."
 sleep 3
@@ -106,7 +111,7 @@ if [ "$DO_DEAUTH" = "1" ]; then
 
     if [ "$PHONE_MAC" = "auto" ]; then
         echo "[+] Detecting phone MAC..."
-        PHONE_MAC="$(sudo "$VENV" "$FINDER" "$IFACE")"
+        PHONE_MAC="$(sudo "$VENV" "$FINDER" "$IFACE" "$BSSID")"
     fi
 
     kick                                     # first resync

@@ -7,8 +7,9 @@ import subprocess
 import sys
 from scapy.all import sniff, Dot11
 
-DRONE = "a0:14:3d:a6:f1:d5"
 IFACE = sys.argv[1] if len(sys.argv) > 1 else "wlx00c0cabe245c"
+# Drone BSSID: argv[2] if given, else a sane default.
+DRONE = (sys.argv[2] if len(sys.argv) > 2 else "a0:14:3d:a6:f1:d5").lower()
 
 # 2.4 GHz first (Bebop defaults there), then common non-DFS 5 GHz channels.
 CHANNELS = list(range(1, 14)) + [36, 40, 44, 48, 149, 153, 157, 161, 165]

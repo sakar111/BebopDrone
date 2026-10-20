@@ -8,9 +8,10 @@ import sys
 from collections import Counter
 from scapy.all import sniff, Dot11
 
-DRONE = "a0:14:3d:a6:f1:d5"
 ALFA = "00:c0:ca:be:24:5c"          # our own adapter — never the phone
 IFACE = sys.argv[1] if len(sys.argv) > 1 else "wlx00c0cabe245c"
+# Drone BSSID: argv[2] if given (auto-detected upstream), else a sane default.
+DRONE = (sys.argv[2] if len(sys.argv) > 2 else "a0:14:3d:a6:f1:d5").lower()
 cnt = Counter()
 
 

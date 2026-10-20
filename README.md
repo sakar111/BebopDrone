@@ -139,6 +139,7 @@ periodic keyframe "kick" is a *recovery* mechanism, not a reception fix.
 - `live_parser.py` — offline/live H.264 reassembly (RTP `v2` and ARStream `v1`)
 - `watch_bebop.sh` — engine: scan, channel-lock, launch (env-configurable)
 - `watch_passive.sh` / `watch_active.sh` — the two modes above
+- `find_drone.py` — detect the drone's BSSID **and** channel by its SSID/OUI
 - `find_phone.py` — detect the phone's MAC for the targeted deauth
-- `find_channel.py` — detect the drone's Wi-Fi channel (channel-hop + sniff)
+- `find_channel.py` — detect just the channel when the BSSID is already known
 - `capture_start.py` — capture a stream (re)start to grab fresh SPS/PPS
