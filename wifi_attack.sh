@@ -76,7 +76,7 @@ sudo ip link set "$IFACE" up
 channel_num="${CHANNEL:-}"
 if [ -z "$BSSID" ] || [ -z "$channel_num" ]; then
     echo "[+] Auto-detecting the drone (SSID '$SSID_PREFIX*')..."
-    read -r DET_BSSID DET_CH < <(sudo "$VENV" "$DRONEFINDER" "$IFACE" "$SSID_PREFIX")
+    read -r DET_BSSID DET_CH DET_SSID < <(sudo "$VENV" "$DRONEFINDER" "$IFACE" "$SSID_PREFIX")
     [ -z "$BSSID" ] && BSSID="$DET_BSSID"
     [ -z "$channel_num" ] && channel_num="$DET_CH"
 fi
@@ -128,8 +128,12 @@ done
 if [ -n "$DRONE_SSID" ]; then
     echo "[+] Connecting to SSID '$DRONE_SSID'..."
     sudo nmcli device wifi connect "$DRONE_SSID" ifname "$NET_IFACE"
+elif [ -n "$DET_SSID" ]; then
+    # SSID not broadcast in NM's scan, but find_drone caught it off the air.
+    echo "[+] Connecting to hidden SSID '$DET_SSID'..."
+    sudo nmcli device wifi connect "$DET_SSID" ifname "$NET_IFACE" hidden yes
 else
-    echo "[+] SSID not in scan yet; trying BSSID $BSSID directly..."
+    echo "[+] SSID unknown; trying BSSID $BSSID directly..."
     sudo nmcli device wifi connect "$BSSID" ifname "$NET_IFACE"
 fi
 JOINED=1

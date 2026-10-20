@@ -60,7 +60,7 @@ sudo ip link set "$IFACE" up
 CHANNEL="${CHANNEL:-}"
 if [ -z "$BSSID" ] || [ -z "$CHANNEL" ]; then
     echo "[+] Auto-detecting the drone (SSID '$SSID_PREFIX*')..."
-    read -r DET_BSSID DET_CH < <(sudo "$VENV" "$DRONEFINDER" "$IFACE" "$SSID_PREFIX")
+    read -r DET_BSSID DET_CH DET_SSID < <(sudo "$VENV" "$DRONEFINDER" "$IFACE" "$SSID_PREFIX")
     [ -z "$BSSID" ] && BSSID="$DET_BSSID"
     [ -z "$CHANNEL" ] && CHANNEL="$DET_CH"
 fi
